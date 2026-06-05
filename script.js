@@ -33,3 +33,25 @@ var questions = [
   { q: "What is \"hoisting\" in JavaScript?", options: ["Moving variable/function declarations to the top of their scope before code execution", "A way to import modules", "An event-handling technique", "A method for asynchronous operations"], answer: 0 },
   { q: "Which of the following creates a Promise in JavaScript?", options: ["new Promise(function(resolve, reject) {})", "Promise.create()", "async function Promise() {}", "Promise = new Object()"], answer: 0 }
 ];
+
+function togglePassword() {
+  var passwordInput = document.getElementById("password");
+  var btn = document.getElementById("show-hide-btn");
+  if (passwordInput.type === "password") {
+    passwordInput.type = "text";
+    btn.innerHTML = "Hide";
+  } else {
+    passwordInput.type = "password";
+    btn.innerHTML = "Show";
+  }
+}
+
+function login() {
+  var u = document.getElementById("username").value;
+  var p = document.getElementById("password").value;
+  if (p === "pass1234") {
+    currentStudentName = users[u];
+    document.getElementById("login-section").style.display = "none";
+    document.getElementById("quiz-section").style.display = "block";
+  }
+}
