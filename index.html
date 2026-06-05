@@ -5,9 +5,60 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+
   <div id="login-section">
     <h1>JavaScript Quiz</h1>
     <p>Please login to start</p>
+    
+    <div class="input-box">
+      <label>Select Student:</label>
+      <select id="username">
+        <option value="">-- Select --</option>
+        <option value="student1">Arjun Sharma</option>
+        <option value="student2">Priya Mehta</option>
+        <option value="student3">Rahul Verma</option>
+        <option value="student4">Sneha Patel</option>
+      </select>
+    </div>
+    
+    <div class="input-box">
+      <label>Password:</label>
+      <input type="password" id="password" placeholder="Enter password">
+      <button id="show-hide-btn" onclick="togglePassword()">Show</button>
+    </div>
+    
+    <p id="error-message" style="color: red; display: none;">Wrong username or password!</p>
+    <button id="login-btn" onclick="login()">Start Quiz</button>
   </div>
+
+  <div id="quiz-section" style="display: none;">
+    <h2>Question <span id="q-number">1</span> of 15</h2>
+    <p>Student: <span id="student-name"></span></p>
+    <hr>
+    <h3 id="question-text">Question goes here</h3>
+    <div id="options-container">
+      <!-- Options will go here -->
+    </div>
+    <br>
+    <button id="next-btn" onclick="nextQuestion()" disabled>Next</button>
+  </div>
+
+  <div id="results-section" style="display: none;">
+    <h1>Quiz Completed!</h1>
+    <p id="result-student"></p>
+    <h2>Score: <span id="score-number">0</span> / 15</h2>
+    <h3 id="pass-fail-message"></h3>
+    <br>
+    <button onclick="showReview()">Review Answers</button>
+    <button onclick="logout()">Logout</button>
+    
+    <div id="review-container" style="display: none;">
+      <hr>
+      <h3>Review:</h3>
+      <div id="review-list"></div>
+    </div>
+  </div>
+
+  
 </body>
 </html>
