@@ -162,9 +162,11 @@ function showQuestion() {
   document.getElementById("question-text").innerHTML = q.q;
   var optionsContainer = document.getElementById("options-container");
   optionsContainer.innerHTML = "";
+  var serials = ["A", "B", "C", "D", "E", "F"];
   for (var i = 0; i < q.options.length; i++) {
     var btn = document.createElement("button");
-    btn.innerHTML = q.options[i];
+    var prefix = serials[i] ? serials[i] + ". " : (i + 1) + ". ";
+    btn.innerHTML = prefix + q.options[i];
     btn.className = "option-btn";
     btn.setAttribute("onclick", "selectAnswer(" + i + ", this)");
     optionsContainer.appendChild(btn);
@@ -181,7 +183,6 @@ function showQuestion() {
     var options = optionsContainer.getElementsByTagName("button");
     for (var i = 0; i < options.length; i++) {
       options[i].className = "option-btn";
-      options[i].disabled = true;
     }
     if (options[selectedIdx]) {
       options[selectedIdx].className = "option-btn selected-option";
@@ -195,7 +196,6 @@ function selectAnswer(index, buttonElement) {
   var options = document.getElementById("options-container").getElementsByTagName("button");
   for (var i = 0; i < options.length; i++) {
     options[i].className = "option-btn";
-    options[i].disabled = true;
   }
   buttonElement.className = "option-btn selected-option";
   document.getElementById("next-btn").disabled = false;
@@ -218,13 +218,18 @@ function showResults() {
   score = 0;
   var summaryDiv = document.getElementById("options-summary");
   summaryDiv.innerHTML = "";
+  var serials = ["A", "B", "C", "D", "E", "F"];
   for (var i = 0; i < shuffledQuestions.length; i++) {
     if (userAnswers[i] === shuffledQuestions[i].answer) score++;
     var p = document.createElement("p");
     p.style.textAlign = "left";
     p.style.borderBottom = "1px solid #ccc";
     p.style.paddingBottom = "5px";
-    p.innerHTML = "Q" + (i+1) + "<br>Selected Option: " + shuffledQuestions[i].options[userAnswers[i]] + "<br>Correct Option: " + shuffledQuestions[i].options[shuffledQuestions[i].answer];
+    var userAnsSerial = serials[userAnswers[i]] ? serials[userAnswers[i]] + ". " : (userAnswers[i] + 1) + ". ";
+    var correctAnsSerial = serials[shuffledQuestions[i].answer] ? serials[shuffledQuestions[i].answer] + ". " : (shuffledQuestions[i].answer + 1) + ". ";
+    var userStr = (userAnswers[i] !== undefined && userAnswers[i] !== null) ? (userAnsSerial + shuffledQuestions[i].options[userAnswers[i]]) : "Not Answered";
+    var correctStr = correctAnsSerial + shuffledQuestions[i].options[shuffledQuestions[i].answer];
+    p.innerHTML = "Q" + (i+1) + "<br>Selected Option: " + userStr + "<br>Correct Option: " + correctStr;
     summaryDiv.appendChild(p);
   }
   document.getElementById("result-student").innerHTML = "Student: " + currentStudentName;
