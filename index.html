@@ -1,64 +1,64 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<head>
-  <title>JS Quiz</title>
-  <link rel="stylesheet" href="style.css" />
-</head>
-<body>
-
-  <div id="login-section">
-    <h1>JavaScript Quiz</h1>
-    <p>Please login to start</p>
-    
-    <div class="input-box">
-      <label>Select Student:</label>
-      <select id="username">
-        <option value="">-- Select --</option>
-        <option value="student1">Arjun Sharma</option>
-        <option value="student2">Priya Mehta</option>
-        <option value="student3">Rahul Verma</option>
-        <option value="student4">Sneha Patel</option>
-      </select>
+  <head>
+    <title>JS Quiz</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div id="login-section">
+      <h1>JavaScript Quiz</h1>
+      <p>Please login to start</p>
+      <div class="input-box">
+        <label>Username:</label>
+        <input type="text" id="username" placeholder="Enter username" />
+      </div>
+      <div class="input-box">
+        <label>Password:</label>
+        <input type="password" id="password" placeholder="Enter password" />
+        <button id="show-hide-btn" onclick="togglePassword()">Show</button>
+      </div>
+      <p id="error-message" style="color: red; display: none">
+        Wrong username or password!
+      </p>
+      <button id="login-btn" onclick="login()">Start Quiz</button>
+      <br /><br />
+      <p>Don't have an account? <a href="#" onclick="showSignUp()">Sign Up</a></p>
     </div>
-    
-    <div class="input-box">
-      <label>Password:</label>
-      <input type="password" id="password" placeholder="Enter password">
-      <button id="show-hide-btn" onclick="togglePassword()">Show</button>
+    <div id="signup-section" style="display: none">
+      <h1>JavaScript Quiz</h1>
+      <p>Create a new account</p>
+      <div class="input-box">
+        <label>New Username:</label>
+        <input type="text" id="new-username" placeholder="Choose a username" />
+      </div>
+      <div class="input-box">
+        <label>New Password:</label>
+        <input type="password" id="new-password" placeholder="Choose a password" />
+      </div>
+      <p id="signup-error" style="color: red; display: none"></p>
+      <button onclick="signUp()">Sign Up</button>
+      <br /><br />
+      <p>Already have an account? <a href="#" onclick="showLogin()">Sign In</a></p>
     </div>
-    
-    <p id="error-message" style="color: red; display: none;">Wrong username or password!</p>
-    <button id="login-btn" onclick="login()">Start Quiz</button>
-  </div>
-
-  <div id="quiz-section" style="display: none;">
-    <h2>Question <span id="q-number">1</span> of 15</h2>
-    <p>Student: <span id="student-name"></span></p>
-    <hr>
-    <h3 id="question-text">Question goes here</h3>
-    <div id="options-container">
-      <!-- Options will go here -->
+    <div id="quiz-section" style="display: none">
+      <h2>Question <span id="q-number">1</span> of 15</h2>
+      <p>Student: <span id="student-name"></span></p>
+      <hr />
+      <h3 id="question-text">Question goes here</h3>
+      <div id="options-container"></div>
+      <br />
+      <button id="next-btn" onclick="nextQuestion()" disabled>Next</button>
     </div>
-    <br>
-    <button id="next-btn" onclick="nextQuestion()" disabled>Next</button>
-  </div>
-
-  <div id="results-section" style="display: none;">
-    <h1>Quiz Completed!</h1>
-    <p id="result-student"></p>
-    <h2>Score: <span id="score-number">0</span> / 15</h2>
-    <h3 id="pass-fail-message"></h3>
-    <br>
-    <button onclick="showReview()">Review Answers</button>
-    <button onclick="logout()">Logout</button>
-    
-    <div id="review-container" style="display: none;">
-      <hr>
-      <h3>Review:</h3>
-      <div id="review-list"></div>
+    <div id="results-section" style="display: none">
+      <h1>Quiz Completed!</h1>
+      <p id="result-student"></p>
+      <h2>Score: <span id="score-number">0</span> / 15</h2>
+      <h3 id="pass-fail-message"></h3>
+      <br />
+      <div id="options-summary"></div>
+      <br />
+      <button onclick="logout()">Logout</button>
     </div>
-  </div>
-
-  <script src="script.js"></script>
-</body>
+    <script src="script.js"></script>
+  </body>
 </html>

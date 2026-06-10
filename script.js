@@ -1,11 +1,13 @@
-// Data
-var users = {
-  "student1": "Arjun Sharma",
-  "student2": "Priya Mehta",
-  "student3": "Rahul Verma",
-  "student4": "Sneha Patel"
+var defaultUsers = {
+  "Arjun": "pass1234",
+  "Vijay": "pass1234",
+  "Mithu": "pass1234",
+  "Karthik": "pass1234"
 };
-
+var users = JSON.parse(localStorage.getItem("quizUsers"));
+if (!users) {
+  users = defaultUsers;
+}
 var questions = [
   { q: "Which keyword is used to declare a block-scoped variable in JavaScript?", options: ["var", "let", "def", "dim"], answer: 1 },
   { q: "What is the output of: typeof null?", options: ["\"null\"", "\"undefined\"", "\"object\"", "\"boolean\""], answer: 2 },
@@ -23,14 +25,7 @@ var questions = [
   { q: "What is \"hoisting\" in JavaScript?", options: ["Moving variable/function declarations to the top of their scope before code execution", "A way to import modules", "An event-handling technique", "A method for asynchronous operations"], answer: 0 },
   { q: "Which of the following creates a Promise in JavaScript?", options: ["new Promise(function(resolve, reject) {})", "Promise.create()", "async function Promise() {}", "Promise = new Object()"], answer: 0 }
 ];
-
-// Variables
-var currentStudentId = "";
-var currentStudentName = "";
-var currentQuestionIndex = 0;
-var score = 0;
-var userAnswers = [];
-var shuffledQuestions = [];
+var currentStudentId = "", currentStudentName = "", currentQuestionIndex = 0, score = 0, userAnswers = [], shuffledQuestions = [];
 
 function togglePassword() {
   var passwordInput = document.getElementById("password");
@@ -44,35 +39,62 @@ function togglePassword() {
   }
 }
 
+function showSignUp() {
+  document.getElementById("login-section").style.display = "none";
+  document.getElementById("signup-section").style.display = "block";
+  document.getElementById("error-message").style.display = "none";
+}
+
+function showLogin() {
+  document.getElementById("signup-section").style.display = "none";
+  document.getElementById("login-section").style.display = "block";
+  document.getElementById("signup-error").style.display = "none";
+}
+
+function signUp() {
+  var newU = document.getElementById("new-username").value;
+  var newP = document.getElementById("new-password").value;
+  var err = document.getElementById("signup-error");
+  if (newU === "" || newP === "") {
+    err.innerHTML = "Please fill in both fields!";
+    err.style.display = "block";
+    return;
+  }
+  if (users[newU]) {
+    err.innerHTML = "Username already exists!";
+    err.style.display = "block";
+    return;
+  }
+  users[newU] = newP;
+  localStorage.setItem("quizUsers", JSON.stringify(users));
+  document.getElementById("new-username").value = "";
+  document.getElementById("new-password").value = "";
+  err.style.display = "none";
+  showLogin();
+  alert("Account created successfully! Please login.");
+}
+
 function login() {
-  var usernameSelect = document.getElementById("username");
-  var passwordInput = document.getElementById("password");
+  var u = document.getElementById("username").value;
+  var p = document.getElementById("password").value;
   var errorMsg = document.getElementById("error-message");
-
-  var u = usernameSelect.value;
-  var p = passwordInput.value;
-
   if (u === "" || p === "") {
     errorMsg.innerHTML = "Please enter both username and password!";
     errorMsg.style.display = "block";
     return;
   }
-
-  // Very simple password check
-  if (p === "pass1234") {
+  if (users[u] === p) {
     errorMsg.style.display = "none";
     currentStudentId = u;
-    currentStudentName = users[u];
-    
+    currentStudentName = u;
     startQuiz();
   } else {
-    errorMsg.innerHTML = "Wrong password!";
+    errorMsg.innerHTML = "Wrong username or password!";
     errorMsg.style.display = "block";
   }
 }
 
 function shuffleArray(array) {
-  // Simple random shuffle using basic loop
   for (var i = array.length - 1; i > 0; i--) {
     var j = Math.floor(Math.random() * (i + 1));
     var temp = array[i];
@@ -85,21 +107,15 @@ function shuffleArray(array) {
 function startQuiz() {
   document.getElementById("login-section").style.display = "none";
   document.getElementById("quiz-section").style.display = "block";
-  
   document.getElementById("student-name").innerHTML = currentStudentName;
-
-  // Make a copy of questions and shuffle
   shuffledQuestions = [];
   for (var i = 0; i < questions.length; i++) {
     shuffledQuestions.push(questions[i]);
   }
   shuffleArray(shuffledQuestions);
-
-  // Initialize variables
   currentQuestionIndex = 0;
   score = 0;
   userAnswers = [];
-
   showQuestion();
 }
 
@@ -107,10 +123,8 @@ function showQuestion() {
   var q = shuffledQuestions[currentQuestionIndex];
   document.getElementById("q-number").innerHTML = (currentQuestionIndex + 1);
   document.getElementById("question-text").innerHTML = q.q;
-
   var optionsContainer = document.getElementById("options-container");
-  optionsContainer.innerHTML = ""; // clear old options
-
+  optionsContainer.innerHTML = "";
   for (var i = 0; i < q.options.length; i++) {
     var btn = document.createElement("button");
     btn.innerHTML = q.options[i];
@@ -118,7 +132,6 @@ function showQuestion() {
     btn.setAttribute("onclick", "selectAnswer(" + i + ", this)");
     optionsContainer.appendChild(btn);
   }
-
   document.getElementById("next-btn").disabled = true;
   if (currentQuestionIndex === shuffledQuestions.length - 1) {
     document.getElementById("next-btn").innerHTML = "Submit Quiz";
@@ -129,13 +142,11 @@ function showQuestion() {
 
 function selectAnswer(index, buttonElement) {
   userAnswers[currentQuestionIndex] = index;
-  
   var options = document.getElementById("options-container").getElementsByTagName("button");
   for (var i = 0; i < options.length; i++) {
-    options[i].className = "option-btn"; // reset all
-    options[i].disabled = true; // disable all
+    options[i].className = "option-btn";
+    options[i].disabled = true;
   }
-  
   buttonElement.className = "option-btn selected-option";
   document.getElementById("next-btn").disabled = false;
 }
@@ -152,18 +163,20 @@ function nextQuestion() {
 function showResults() {
   document.getElementById("quiz-section").style.display = "none";
   document.getElementById("results-section").style.display = "block";
-
-  // Calculate score
   score = 0;
+  var summaryDiv = document.getElementById("options-summary");
+  summaryDiv.innerHTML = "";
   for (var i = 0; i < shuffledQuestions.length; i++) {
-    if (userAnswers[i] === shuffledQuestions[i].answer) {
-      score++;
-    }
+    if (userAnswers[i] === shuffledQuestions[i].answer) score++;
+    var p = document.createElement("p");
+    p.style.textAlign = "left";
+    p.style.borderBottom = "1px solid #ccc";
+    p.style.paddingBottom = "5px";
+    p.innerHTML = "Q" + (i+1) + "<br>Selected Option: " + shuffledQuestions[i].options[userAnswers[i]] + "<br>Correct Option: " + shuffledQuestions[i].options[shuffledQuestions[i].answer];
+    summaryDiv.appendChild(p);
   }
-
   document.getElementById("result-student").innerHTML = "Student: " + currentStudentName;
   document.getElementById("score-number").innerHTML = score;
-
   var passMessage = document.getElementById("pass-fail-message");
   if (score >= 9) {
     passMessage.innerHTML = "You Passed!";
@@ -174,48 +187,13 @@ function showResults() {
   }
 }
 
-function showReview() {
-  var reviewContainer = document.getElementById("review-container");
-  var reviewList = document.getElementById("review-list");
-  
-  if (reviewContainer.style.display === "block") {
-    reviewContainer.style.display = "none";
-    return;
-  }
-  
-  reviewContainer.style.display = "block";
-  reviewList.innerHTML = "";
-
-  for (var i = 0; i < shuffledQuestions.length; i++) {
-    var q = shuffledQuestions[i];
-    var userAnswerIndex = userAnswers[i];
-    var correctAnswerIndex = q.answer;
-    
-    var item = document.createElement("div");
-    item.className = "review-item";
-    
-    var questionHtml = "<b>Question " + (i + 1) + ":</b> " + q.q + "<br>";
-    
-    if (userAnswerIndex === correctAnswerIndex) {
-      questionHtml += "<span class='correct-text'>Correct! Your answer: " + q.options[userAnswerIndex] + "</span><br>";
-    } else {
-      questionHtml += "<span class='wrong-text'>Wrong! Your answer: " + q.options[userAnswerIndex] + "</span><br>";
-      questionHtml += "<span class='correct-text'>Correct answer is: " + q.options[correctAnswerIndex] + "</span><br>";
-    }
-    
-    item.innerHTML = questionHtml;
-    reviewList.appendChild(item);
-  }
-}
-
 function logout() {
   document.getElementById("results-section").style.display = "none";
   document.getElementById("login-section").style.display = "block";
-  
   document.getElementById("username").value = "";
   document.getElementById("password").value = "";
   document.getElementById("password").type = "password";
   document.getElementById("show-hide-btn").innerHTML = "Show";
   document.getElementById("error-message").style.display = "none";
-  document.getElementById("review-container").style.display = "none";
+  document.getElementById("options-summary").innerHTML = "";
 }
