@@ -1,6 +1,4 @@
 const fs = require('fs');
-
-// Mock localStorage
 let storage = {};
 global.localStorage = {
   getItem: key => storage[key] || null,
@@ -8,7 +6,6 @@ global.localStorage = {
   removeItem: key => { delete storage[key]; }
 };
 
-// Mock DOM
 global.document = {
   getElementById: id => {
     if (!global.elements) global.elements = {};
@@ -18,50 +15,43 @@ global.document = {
         innerHTML: "",
         value: "",
         type: "text",
-        getElementsByTagName: () => {
-          return [
-            { className: "", setAttribute: () => {}, disabled: false },
-            { className: "", setAttribute: () => {}, disabled: false },
-            { className: "", setAttribute: () => {}, disabled: false },
-            { className: "", setAttribute: () => {}, disabled: false }
-          ];
-        },
+        getElementsByTagName: () => [
+          { className: "", setAttribute: () => {}, disabled: false },
+          { className: "", setAttribute: () => {}, disabled: false },
+          { className: "", setAttribute: () => {}, disabled: false },
+          { className: "", setAttribute: () => {}, disabled: false }
+        ],
         appendChild: () => {}
       };
     }
     return global.elements[id];
   },
-  createElement: tag => {
-    return { className: "", setAttribute: () => {}, style: {} };
-  }
+  createElement: tag => ({ className: "", setAttribute: () => {}, style: {} })
 };
+global.alert = console.log;
+global.console.error = console.log;
 
 const script = fs.readFileSync('script.js', 'utf-8');
 eval(script);
 
 document.getElementById("username").value = "Arjun";
 document.getElementById("password").value = "pass1234";
-
-console.log("--- Initial Login ---");
 login();
-console.log("currentQuestionIndex:", currentQuestionIndex);
 
-console.log("\n--- Answer Q1 ---");
-selectAnswer(2, document.createElement("button"));
-console.log("userAnswers:", userAnswers);
-
-console.log("\n--- Next Question ---");
+// Answer all questions
+for (let i = 0; i < 15; i++) {
+  selectAnswer(0, document.createElement("button"));
+  if (i < 14) nextQuestion();
+}
+// Last question -> Next button should say "Submit Quiz" and call showResults in nextQuestion
 nextQuestion();
-console.log("currentQuestionIndex:", currentQuestionIndex);
 
-console.log("\n--- Simulating Refresh ---");
-// Simulate refresh by clearing memory but keeping localStorage (storage variable)
-eval(script); // Re-evaluate to reset globals
+console.log("storage after completion:", storage["quizSession_Arjun"]);
+
+// Refresh simulation
+eval(script);
 document.getElementById("username").value = "Arjun";
 document.getElementById("password").value = "pass1234";
-
 login();
-console.log("After refresh login:");
-console.log("currentQuestionIndex:", currentQuestionIndex);
-console.log("userAnswers:", userAnswers);
 
+console.log("Is results section block?", document.getElementById("results-section").style.display === "block");
