@@ -104,11 +104,12 @@ function shuffleArray(array) {
   return array;
 }
 
-function saveSession() {
+function saveSession(isCompleted) {
   var session = {
     shuffledQuestions: shuffledQuestions,
     currentQuestionIndex: currentQuestionIndex,
-    userAnswers: userAnswers
+    userAnswers: userAnswers,
+    isCompleted: isCompleted || false
   };
   localStorage.setItem("quizSession_" + currentStudentId, JSON.stringify(session));
 }
@@ -119,12 +120,28 @@ function startQuiz() {
   document.getElementById("student-name").innerHTML = currentStudentName;
 
   var savedSession = localStorage.getItem("quizSession_" + currentStudentId);
+  var sessionLoaded = false;
+  
   if (savedSession) {
-    var session = JSON.parse(savedSession);
-    shuffledQuestions = session.shuffledQuestions;
-    currentQuestionIndex = session.currentQuestionIndex;
-    userAnswers = session.userAnswers;
-  } else {
+    try {
+      var session = JSON.parse(savedSession);
+      if (session && session.shuffledQuestions && session.shuffledQuestions.length > 0) {
+        shuffledQuestions = session.shuffledQuestions;
+        currentQuestionIndex = session.currentQuestionIndex || 0;
+        userAnswers = session.userAnswers || [];
+        sessionLoaded = true;
+        
+        if (session.isCompleted) {
+          showResults();
+          return;
+        }
+      }
+    } catch (e) {
+      console.error("Failed to parse session", e);
+    }
+  } 
+  
+  if (!sessionLoaded) {
     shuffledQuestions = [];
     for (var i = 0; i < questions.length; i++) {
       shuffledQuestions.push(questions[i]);
@@ -132,8 +149,9 @@ function startQuiz() {
     shuffleArray(shuffledQuestions);
     currentQuestionIndex = 0;
     userAnswers = [];
-    saveSession();
+    saveSession(false);
   }
+  
   score = 0;
   showQuestion();
 }
@@ -181,13 +199,13 @@ function selectAnswer(index, buttonElement) {
   }
   buttonElement.className = "option-btn selected-option";
   document.getElementById("next-btn").disabled = false;
-  saveSession();
+  saveSession(false);
 }
 
 function nextQuestion() {
   if (currentQuestionIndex < shuffledQuestions.length - 1) {
     currentQuestionIndex++;
-    saveSession();
+    saveSession(false);
     showQuestion();
   } else {
     showResults();
@@ -219,10 +237,11 @@ function showResults() {
     passMessage.innerHTML = "You Failed! Keep trying.";
     passMessage.style.color = "red";
   }
-  localStorage.removeItem("quizSession_" + currentStudentId);
+  saveSession(true);
 }
 
 function logout() {
+  localStorage.removeItem("quizSession_" + currentStudentId);
   document.getElementById("results-section").style.display = "none";
   document.getElementById("login-section").style.display = "block";
   document.getElementById("username").value = "";
