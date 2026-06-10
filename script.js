@@ -104,18 +104,37 @@ function shuffleArray(array) {
   return array;
 }
 
+function saveSession() {
+  var session = {
+    shuffledQuestions: shuffledQuestions,
+    currentQuestionIndex: currentQuestionIndex,
+    userAnswers: userAnswers
+  };
+  localStorage.setItem("quizSession_" + currentStudentId, JSON.stringify(session));
+}
+
 function startQuiz() {
   document.getElementById("login-section").style.display = "none";
   document.getElementById("quiz-section").style.display = "block";
   document.getElementById("student-name").innerHTML = currentStudentName;
-  shuffledQuestions = [];
-  for (var i = 0; i < questions.length; i++) {
-    shuffledQuestions.push(questions[i]);
+
+  var savedSession = localStorage.getItem("quizSession_" + currentStudentId);
+  if (savedSession) {
+    var session = JSON.parse(savedSession);
+    shuffledQuestions = session.shuffledQuestions;
+    currentQuestionIndex = session.currentQuestionIndex;
+    userAnswers = session.userAnswers;
+  } else {
+    shuffledQuestions = [];
+    for (var i = 0; i < questions.length; i++) {
+      shuffledQuestions.push(questions[i]);
+    }
+    shuffleArray(shuffledQuestions);
+    currentQuestionIndex = 0;
+    userAnswers = [];
+    saveSession();
   }
-  shuffleArray(shuffledQuestions);
-  currentQuestionIndex = 0;
   score = 0;
-  userAnswers = [];
   showQuestion();
 }
 
@@ -138,6 +157,19 @@ function showQuestion() {
   } else {
     document.getElementById("next-btn").innerHTML = "Next";
   }
+
+  if (userAnswers[currentQuestionIndex] !== undefined && userAnswers[currentQuestionIndex] !== null) {
+    var selectedIdx = userAnswers[currentQuestionIndex];
+    var options = optionsContainer.getElementsByTagName("button");
+    for (var i = 0; i < options.length; i++) {
+      options[i].className = "option-btn";
+      options[i].disabled = true;
+    }
+    if (options[selectedIdx]) {
+      options[selectedIdx].className = "option-btn selected-option";
+    }
+    document.getElementById("next-btn").disabled = false;
+  }
 }
 
 function selectAnswer(index, buttonElement) {
@@ -149,11 +181,13 @@ function selectAnswer(index, buttonElement) {
   }
   buttonElement.className = "option-btn selected-option";
   document.getElementById("next-btn").disabled = false;
+  saveSession();
 }
 
 function nextQuestion() {
   if (currentQuestionIndex < shuffledQuestions.length - 1) {
     currentQuestionIndex++;
+    saveSession();
     showQuestion();
   } else {
     showResults();
@@ -185,6 +219,7 @@ function showResults() {
     passMessage.innerHTML = "You Failed! Keep trying.";
     passMessage.style.color = "red";
   }
+  localStorage.removeItem("quizSession_" + currentStudentId);
 }
 
 function logout() {
