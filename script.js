@@ -23,7 +23,8 @@ var questions = [
   { q: "What will: console.log(0.1 + 0.2 === 0.3) output?", options: ["true", "false", "undefined", "TypeError"], answer: 1 },
   { q: "Which array method creates a new array with all elements that pass a test?", options: ["map()", "forEach()", "filter()", "reduce()"], answer: 2 },
   { q: "What is \"hoisting\" in JavaScript?", options: ["Moving variable/function declarations to the top of their scope before code execution", "A way to import modules", "An event-handling technique", "A method for asynchronous operations"], answer: 0 },
-  { q: "Which of the following creates a Promise in JavaScript?", options: ["new Promise(function(resolve, reject) {})", "Promise.create()", "async function Promise() {}", "Promise = new Object()"], answer: 0 }
+  { q: "Which of the following creates a Promise in JavaScript?", options: ["new Promise(function(resolve, reject) {})", "Promise.create()", "async function Promise() {}", "Promise = new Object()"], answer: 0 },
+  { q: "Which of the following are JavaScript frameworks or libraries? (Select all that apply)", options: ["React", "Django", "Angular", "Flask"], answer: [0, 2] }
 ];
 var currentStudentId = "", currentStudentName = "", currentQuestionIndex = 0, score = 0, userAnswers = [], shuffledQuestions = [];
 
@@ -162,15 +163,55 @@ function showQuestion() {
   document.getElementById("question-text").innerHTML = q.q;
   var optionsContainer = document.getElementById("options-container");
   optionsContainer.innerHTML = "";
+  
+  var isMultiple = Array.isArray(q.answer);
+  var inputType = isMultiple ? "checkbox" : "radio";
   var serials = ["A", "B", "C", "D", "E", "F"];
+  
   for (var i = 0; i < q.options.length; i++) {
-    var btn = document.createElement("button");
+    var label = document.createElement("label");
+    label.className = "option-btn";
+    label.style.cursor = "pointer";
+    label.style.display = "flex";
+    label.style.alignItems = "center";
+    label.style.boxSizing = "border-box";
+    label.style.textAlign = "left";
+    
+    var input = document.createElement("input");
+    input.type = inputType;
+    input.name = "questionOption";
+    input.value = i;
+    input.style.margin = "0 10px 0 0";
+    input.style.flexShrink = "0";
+    input.style.width = "auto";
+    input.style.height = "auto";
+    
+    if (isMultiple) {
+      if (userAnswers[currentQuestionIndex] && userAnswers[currentQuestionIndex].includes(i)) {
+        input.checked = true;
+        label.className = "option-btn selected-option";
+      }
+    } else {
+      if (userAnswers[currentQuestionIndex] === i) {
+        input.checked = true;
+        label.className = "option-btn selected-option";
+      }
+    }
+    
+    input.onchange = function() {
+      selectAnswer(isMultiple);
+    };
+
     var prefix = serials[i] ? serials[i] + ". " : (i + 1) + ". ";
-    btn.innerHTML = prefix + q.options[i];
-    btn.className = "option-btn";
-    btn.setAttribute("onclick", "selectAnswer(" + i + ", this)");
-    optionsContainer.appendChild(btn);
+    
+    var textSpan = document.createElement("span");
+    textSpan.innerHTML = prefix + q.options[i];
+    
+    label.appendChild(input);
+    label.appendChild(textSpan);
+    optionsContainer.appendChild(label);
   }
+  
   document.getElementById("next-btn").disabled = true;
   if (currentQuestionIndex === shuffledQuestions.length - 1) {
     document.getElementById("next-btn").innerHTML = "Submit Quiz";
@@ -179,26 +220,36 @@ function showQuestion() {
   }
 
   if (userAnswers[currentQuestionIndex] !== undefined && userAnswers[currentQuestionIndex] !== null) {
-    var selectedIdx = userAnswers[currentQuestionIndex];
-    var options = optionsContainer.getElementsByTagName("button");
-    for (var i = 0; i < options.length; i++) {
-      options[i].className = "option-btn";
+    if (isMultiple && userAnswers[currentQuestionIndex].length > 0) {
+      document.getElementById("next-btn").disabled = false;
+    } else if (!isMultiple) {
+      document.getElementById("next-btn").disabled = false;
     }
-    if (options[selectedIdx]) {
-      options[selectedIdx].className = "option-btn selected-option";
-    }
-    document.getElementById("next-btn").disabled = false;
   }
 }
 
-function selectAnswer(index, buttonElement) {
-  userAnswers[currentQuestionIndex] = index;
-  var options = document.getElementById("options-container").getElementsByTagName("button");
-  for (var i = 0; i < options.length; i++) {
-    options[i].className = "option-btn";
+function selectAnswer(isMultiple) {
+  var inputs = document.getElementsByName("questionOption");
+  var selected = [];
+  var optionsContainer = document.getElementById("options-container");
+  var labels = optionsContainer.getElementsByTagName("label");
+
+  for (var i = 0; i < inputs.length; i++) {
+    if (inputs[i].checked) {
+      selected.push(parseInt(inputs[i].value));
+      labels[i].className = "option-btn selected-option";
+    } else {
+      labels[i].className = "option-btn";
+    }
   }
-  buttonElement.className = "option-btn selected-option";
-  document.getElementById("next-btn").disabled = false;
+
+  if (isMultiple) {
+    userAnswers[currentQuestionIndex] = selected;
+    document.getElementById("next-btn").disabled = (selected.length === 0);
+  } else {
+    userAnswers[currentQuestionIndex] = selected[0];
+    document.getElementById("next-btn").disabled = false;
+  }
   saveSession(false);
 }
 
@@ -212,30 +263,70 @@ function nextQuestion() {
   }
 }
 
+function arraysEqual(a, b) {
+  if (a === b) return true;
+  if (a == null || b == null) return false;
+  if (a.length !== b.length) return false;
+  var aSorted = a.slice().sort();
+  var bSorted = b.slice().sort();
+  for (var i = 0; i < aSorted.length; ++i) {
+    if (aSorted[i] !== bSorted[i]) return false;
+  }
+  return true;
+}
+
+function formatAnswers(ansIndexOrArray, options) {
+  var serials = ["A", "B", "C", "D", "E", "F"];
+  if (Array.isArray(ansIndexOrArray)) {
+    if (ansIndexOrArray.length === 0) return "Not Answered";
+    return ansIndexOrArray.map(function(idx) {
+      var s = serials[idx] ? serials[idx] + ". " : (idx + 1) + ". ";
+      return s + options[idx];
+    }).join(", ");
+  } else {
+    if (ansIndexOrArray === undefined || ansIndexOrArray === null) return "Not Answered";
+    var s = serials[ansIndexOrArray] ? serials[ansIndexOrArray] + ". " : (ansIndexOrArray + 1) + ". ";
+    return s + options[ansIndexOrArray];
+  }
+}
+
 function showResults() {
   document.getElementById("quiz-section").style.display = "none";
   document.getElementById("results-section").style.display = "block";
   score = 0;
   var summaryDiv = document.getElementById("options-summary");
   summaryDiv.innerHTML = "";
-  var serials = ["A", "B", "C", "D", "E", "F"];
+  
   for (var i = 0; i < shuffledQuestions.length; i++) {
-    if (userAnswers[i] === shuffledQuestions[i].answer) score++;
+    var isMultiple = Array.isArray(shuffledQuestions[i].answer);
+    var isCorrect = false;
+
+    if (isMultiple) {
+      isCorrect = arraysEqual(userAnswers[i] || [], shuffledQuestions[i].answer);
+    } else {
+      isCorrect = (userAnswers[i] === shuffledQuestions[i].answer);
+    }
+    
+    if (isCorrect) score++;
+
     var p = document.createElement("p");
     p.style.textAlign = "left";
     p.style.borderBottom = "1px solid #ccc";
     p.style.paddingBottom = "5px";
-    var userAnsSerial = serials[userAnswers[i]] ? serials[userAnswers[i]] + ". " : (userAnswers[i] + 1) + ". ";
-    var correctAnsSerial = serials[shuffledQuestions[i].answer] ? serials[shuffledQuestions[i].answer] + ". " : (shuffledQuestions[i].answer + 1) + ". ";
-    var userStr = (userAnswers[i] !== undefined && userAnswers[i] !== null) ? (userAnsSerial + shuffledQuestions[i].options[userAnswers[i]]) : "Not Answered";
-    var correctStr = correctAnsSerial + shuffledQuestions[i].options[shuffledQuestions[i].answer];
-    p.innerHTML = "Q" + (i+1) + "<br>Selected Option: " + userStr + "<br>Correct Option: " + correctStr;
+    
+    var userStr = formatAnswers(userAnswers[i], shuffledQuestions[i].options);
+    var correctStr = formatAnswers(shuffledQuestions[i].answer, shuffledQuestions[i].options);
+    
+    p.innerHTML = "Q" + (i+1) + "<br>Selected Option(s): <br><b>" + userStr + "</b><br>Correct Option(s): <br><b>" + correctStr + "</b>";
     summaryDiv.appendChild(p);
   }
+  
   document.getElementById("result-student").innerHTML = "Student: " + currentStudentName;
-  document.getElementById("score-number").innerHTML = score;
+  document.getElementById("score-number").innerHTML = score + " / " + shuffledQuestions.length;
+  
   var passMessage = document.getElementById("pass-fail-message");
-  if (score >= 9) {
+  var passThreshold = Math.ceil(shuffledQuestions.length * 0.6); // 60% to pass
+  if (score >= passThreshold) {
     passMessage.innerHTML = "You Passed!";
     passMessage.style.color = "green";
   } else {
